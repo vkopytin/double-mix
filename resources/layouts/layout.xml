@@ -10,6 +10,8 @@
         </drawable>
 
         <label id="currentTime" visible="true" x="152" y="106" text="10:10" color="Graphics.COLOR_LT_GRAY" font="Graphics.FONT_NUMBER_MILD" justification="Graphics.TEXT_JUSTIFY_LEFT" />
+        <label id="weekDay" visible="true" x="88" y="100" text="MON" color="Graphics.COLOR_LT_GRAY" font="Graphics.FONT_XTINY" justification="Graphics.TEXT_JUSTIFY_LEFT" />
+        <label id="monthAndDate" visible="true" x="152" y="88" text="JAN 01" color="Graphics.COLOR_LT_GRAY" font="Graphics.FONT_TINY" justification="Graphics.TEXT_JUSTIFY_LEFT" />
 
         <drawable id="secondsClock" class="SecondsClockView">
             <param name="locX">103</param>

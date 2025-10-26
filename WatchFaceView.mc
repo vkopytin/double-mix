@@ -8,6 +8,21 @@ import Toybox.Application;
 import Toybox.Graphics;
 using Toybox.Time.Gregorian as Date;
 
+const WEEK_DAYS = ["", "SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+const MONTHS = {
+    Date.MONTH_JANUARY => "JAN",
+    Date.MONTH_FEBRUARY => "FEB",
+    Date.MONTH_MARCH => "MAR",
+    Date.MONTH_APRIL => "APR",
+    Date.MONTH_MAY => "MAY",
+    Date.MONTH_JUNE => "JUN",
+    Date.MONTH_JULY => "JUL",
+    Date.MONTH_AUGUST => "AUG",
+    Date.MONTH_SEPTEMBER => "SEP",
+    Date.MONTH_OCTOBER => "OCT",
+    Date.MONTH_NOVEMBER => "NOV",
+    Date.MONTH_DECEMBER => "DEC"
+};
 
 class WatchFaceView extends WatchUi.WatchFace {
     private const ONE_RAD = Math.PI * 2.0 / 60.0;
@@ -58,6 +73,8 @@ class WatchFaceView extends WatchUi.WatchFace {
     private var clockTime = null as System.ClockTime?;
 
     private var currentTime = null as Toybox.WatchUi.Text?;
+    private var weekDay = null as Toybox.WatchUi.Text?;
+    private var monthAndDate = null as Toybox.WatchUi.Text?;
     private var background = null as Toybox.WatchUi.Drawable?;
     private var secondsClock = null as SecondsClockView?;
 
@@ -77,6 +94,8 @@ class WatchFaceView extends WatchUi.WatchFace {
         setLayout(self.backLayout);
         self.background = View.findDrawableById("background");
         self.currentTime = View.findDrawableById("currentTime");
+        self.weekDay = View.findDrawableById("weekDay");
+        self.monthAndDate = View.findDrawableById("monthAndDate");
         self.analogClock = View.findDrawableById("analogClock") as AnalogClockView;
         self.secondsClock = View.findDrawableById("secondsClock") as SecondsClockView;
     }
@@ -143,9 +162,11 @@ class WatchFaceView extends WatchUi.WatchFace {
 
         infoBufferdc.setAntiAlias(true);
 
+        self.weekDay.draw(infoBufferdc);
+        self.monthAndDate.draw(infoBufferdc);
+        self.currentTime.draw(infoBufferdc);
         self.analogClock.draw(infoBufferdc);
         self.secondsClock.draw(infoBufferdc);
-        self.currentTime.draw(infoBufferdc);
         //self.bg.draw(bufferdc);
         //self.infoWeekDay.draw(bufferdc);
         //self.infoStress.draw(bufferdc);
@@ -197,6 +218,9 @@ class WatchFaceView extends WatchUi.WatchFace {
 
             self.background.draw(dc);
             self.currentTime.setText(Lang.format("$1$:$2$", [self.clockTime.hour, self.clockTime.min]));
+            self.weekDay.setText(WEEK_DAYS[date.day_of_week]);
+            self.weekDay.setColor(date.day_of_week == Date.DAY_SUNDAY ? Graphics.COLOR_RED : Graphics.COLOR_LT_GRAY);
+            self.monthAndDate.setText(Lang.format("$1$ $2$", [MONTHS[date.month], date.day.format("%02d")]));
 
             self.secondsClock.setSeconds(clockTime.sec);
 

@@ -1,0 +1,11 @@
+<drawables>
+    <bitmap id="LauncherIcon" filename="launcher_icon.png" />
+    <bitmap id="HourHand" filename="hourHand.png"/>
+    <bitmap id="MinuteHand" filename="minuteHand.png"/>
+    <bitmap id="SecondsHand" filename="secondsHand.png"/>
+
+    <drawable-list id="background">
+        <bitmap id="bg" filename="background.png" y="0" scaleX="260" scaleY="260" />
+    </drawable-list>
+
+</drawables>

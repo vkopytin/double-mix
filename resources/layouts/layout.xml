@@ -1,0 +1,21 @@
+<resources>
+    <layout id="main">
+        <drawable id="background" />
+
+        <drawable id="analogClock" class="AnalogClockView">
+            <param name="locX">103</param>
+            <param name="locY">137</param>
+            <param name="hourHandResId">@Drawables.HourHand</param>
+            <param name="minuteHandResId">@Drawables.MinuteHand</param>
+        </drawable>
+
+        <label id="currentTime" visible="true" x="152" y="106" text="10:10" color="Graphics.COLOR_LT_GRAY" font="Graphics.FONT_NUMBER_MILD" justification="Graphics.TEXT_JUSTIFY_LEFT" />
+
+        <drawable id="secondsClock" class="SecondsClockView">
+            <param name="locX">103</param>
+            <param name="locY">137</param>
+            <param name="rezId">@Drawables.SecondsHand</param>
+        </drawable>
+    </layout>
+
+</resources>

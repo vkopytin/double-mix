@@ -51,6 +51,8 @@ class WatchFaceView extends WatchUi.WatchFace {
     private const transform = new Graphics.AffineTransform();
     private const transform2 = new Graphics.AffineTransform();
     private const transformMove = new Graphics.AffineTransform();
+    private const transformDayNight = new Graphics.AffineTransform();
+
     private const drawBitmapOptions = {
         :transform => self.transform
     };
@@ -65,6 +67,9 @@ class WatchFaceView extends WatchUi.WatchFace {
         :width => 260,
         :height => 260,
     };
+    private const drawDayNightOptions = {
+        :transform => self.transformDayNight
+    };
     //private var initClip = [[0.0, 145.0],[0.0, 0.0], [16.0, 0.0], [16.0, 145.0]];
     private const initClip = [[-5.0, 50.0],[-5.0, 0.0], [14.0, 0.0], [14.0, 50.0]];
     private const clearRange = [79, 53, 103, 24];
@@ -76,6 +81,7 @@ class WatchFaceView extends WatchUi.WatchFace {
     private var weekDay = null as Toybox.WatchUi.Text?;
     private var monthAndDate = null as Toybox.WatchUi.Text?;
     private var background = null as Toybox.WatchUi.Drawable?;
+    private var dayNightBand = null as WatchUi.BitmapResource?;
     private var secondsClock = null as SecondsClockView?;
 
     function initialize() {
@@ -92,6 +98,8 @@ class WatchFaceView extends WatchUi.WatchFace {
         dc.setAntiAlias(true);
         self.backLayout = Rez.Layouts.main(dc);
         setLayout(self.backLayout);
+
+        self.dayNightBand = WatchUi.loadResource(Rez.Drawables.dayNightBand);
         self.background = View.findDrawableById("background");
         self.currentTime = View.findDrawableById("currentTime");
         self.weekDay = View.findDrawableById("weekDay");
@@ -125,6 +133,7 @@ class WatchFaceView extends WatchUi.WatchFace {
 
         backBufferdc.setAntiAlias(true);
 
+        backBufferdc.drawBitmap2(0, 98, self.dayNightBand, self.drawDayNightOptions);
         self.background.draw(backBufferdc);
 
         backBufferdc = null;
@@ -217,12 +226,16 @@ class WatchFaceView extends WatchUi.WatchFace {
             self.quota = 1030;
 
             self.background.draw(dc);
-            self.currentTime.setText(Lang.format("$1$:$2$", [self.clockTime.hour, self.clockTime.min]));
+            self.currentTime.setText(Lang.format("$1$:$2$", [self.clockTime.hour.format("%02d"), self.clockTime.min.format("%02d")]));
             self.weekDay.setText(WEEK_DAYS[date.day_of_week]);
-            self.weekDay.setColor(date.day_of_week == Date.DAY_SUNDAY ? Graphics.COLOR_RED : Graphics.COLOR_LT_GRAY);
+            self.weekDay.setColor(date.day_of_week == Date.DAY_SUNDAY ? 0xFF5500 : Graphics.COLOR_LT_GRAY);
             self.monthAndDate.setText(Lang.format("$1$ $2$", [MONTHS[date.month], date.day.format("%02d")]));
 
             self.secondsClock.setSeconds(clockTime.sec);
+
+            var dayNightPosition = (self.clockTime.hour + self.clockTime.min / 60.0) / 24.0 * 240.0 - 200.0;
+            self.transformDayNight.initialize();
+            self.transformDayNight.translate(dayNightPosition, 70.0);
 
             self.updateBackBuffer(dc);
             self.updateFrontBuffer(dc);

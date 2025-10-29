@@ -35,6 +35,7 @@ class WatchFaceView extends WatchUi.WatchFace {
     private var width = 260;
     private var height = 260;
     private var seconds = 0;
+    private var minutes = 0;
     private var quota = 1010;
 
     private var backLayout = [] as Array<Toybox.WatchUi.Drawable>;
@@ -80,9 +81,11 @@ class WatchFaceView extends WatchUi.WatchFace {
     private var currentTime = null as Toybox.WatchUi.Text?;
     private var weekDay = null as Toybox.WatchUi.Text?;
     private var monthAndDate = null as Toybox.WatchUi.Text?;
+    private var stepsCount = null as Toybox.WatchUi.Text?;
     private var background = null as Toybox.WatchUi.Drawable?;
     private var dayNightBand = null as WatchUi.BitmapResource?;
     private var secondsClock = null as SecondsClockView?;
+    private var infoWeather = null as InfoWeather?;
 
     function initialize() {
         WatchFace.initialize();
@@ -103,9 +106,11 @@ class WatchFaceView extends WatchUi.WatchFace {
         self.background = View.findDrawableById("background");
         self.currentTime = View.findDrawableById("currentTime");
         self.weekDay = View.findDrawableById("weekDay");
+        self.stepsCount = View.findDrawableById("stepsCount");
         self.monthAndDate = View.findDrawableById("monthAndDate");
         self.analogClock = View.findDrawableById("analogClock") as AnalogClockView;
         self.secondsClock = View.findDrawableById("secondsClock") as SecondsClockView;
+        self.infoWeather = View.findDrawableById("infoWeather") as InfoWeather;
     }
 
     // Called when this View is brought to the foreground. Restore
@@ -118,10 +123,10 @@ class WatchFaceView extends WatchUi.WatchFace {
         }
     }
 
-    function updateBackBuffer(dc as Dc) as Void {
+    function updateBackBuffer(dc as Dc, refresh as Boolean) as Void {
         var backBufferdc = null as Graphics.Dc?;
 
-        if (self.backBuffer != null && self.seconds != 0) {
+        if (self.backBuffer != null && !refresh) {
             return;
         }
 
@@ -139,10 +144,10 @@ class WatchFaceView extends WatchUi.WatchFace {
         backBufferdc = null;
     }
 
-    function updateFrontBuffer(dc as Dc) as Void {
+    function updateFrontBuffer(dc as Dc, refresh as Boolean) as Void {
         var frontBufferdc = null as Graphics.Dc?;
 
-        if (self.frontBuffer != null && self.seconds != 0) {
+        if (self.frontBuffer != null && !refresh) {
             return;
         }
 
@@ -172,6 +177,8 @@ class WatchFaceView extends WatchUi.WatchFace {
         infoBufferdc.setAntiAlias(true);
 
         self.weekDay.draw(infoBufferdc);
+        self.infoWeather.draw(infoBufferdc);
+        self.stepsCount.draw(infoBufferdc);
         self.monthAndDate.draw(infoBufferdc);
         self.currentTime.draw(infoBufferdc);
         self.analogClock.draw(infoBufferdc);
@@ -197,7 +204,8 @@ class WatchFaceView extends WatchUi.WatchFace {
         try {
             var activityMonitor = ActivityMonitor.getInfo();
             if (activityMonitor != null && activityMonitor.steps != null) {
-                // toDO: update activity (activityMonitor.steps);
+              var steps = activityMonitor.steps / 1000.0;
+              self.stepsCount.setText(steps.format("%002.3f"));
             }
 
             var now = Time.now();
@@ -237,9 +245,11 @@ class WatchFaceView extends WatchUi.WatchFace {
             self.transformDayNight.initialize();
             self.transformDayNight.translate(dayNightPosition, 70.0);
 
-            self.updateBackBuffer(dc);
-            self.updateFrontBuffer(dc);
+            var refresh = self.minutes != self.clockTime.min;
+            self.updateBackBuffer(dc, refresh);
+            self.updateFrontBuffer(dc, refresh);
             self.updateInfoBuffer(dc);
+            self.minutes = self.clockTime.min;
 
             dc.drawBitmap(0, 0, self.backBuffer);
             dc.drawBitmap(0, 0, self.infoBuffer);

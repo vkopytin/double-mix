@@ -43,6 +43,8 @@ class WatchFaceView extends WatchUi.WatchFace {
 
     private var hand = null as WatchUi.BitmapResource;
     private var handDisk = null as WatchUi.BitmapResource;
+    private var drawBuffer = [null as Graphics.BufferedBitmap, null as Graphics.BufferedBitmap];
+    private var currentDrawBuffer = 0;
     private var buffer = null as Graphics.BufferedBitmap;
     private var buffer2 = null as Graphics.BufferedBitmap;
     private var backBuffer = null as Graphics.BufferedBitmap;
@@ -61,8 +63,8 @@ class WatchFaceView extends WatchUi.WatchFace {
         :transform => self.transform2
     };
     private const initBufferOptions1 = {
-        :width => 16,
-        :height => 151,
+        :width => 50,
+        :height => 150,
     };
     private const initBufferOptions2 = {
         :width => 260,
@@ -72,7 +74,7 @@ class WatchFaceView extends WatchUi.WatchFace {
         :transform => self.transformDayNight
     };
     //private var initClip = [[0.0, 145.0],[0.0, 0.0], [16.0, 0.0], [16.0, 145.0]];
-    private const initClip = [[-5.0, 50.0],[-5.0, 0.0], [14.0, 0.0], [14.0, 50.0]];
+    private const initClip = [[15.0, 155.0],[15.0, 0.0], [39.0, 0.0], [39.0, 155.0]];
     private const clearRange = [79, 53, 103, 24];
     private const emptyOpts = {};
     private var lastTime = 0;
@@ -89,7 +91,9 @@ class WatchFaceView extends WatchUi.WatchFace {
 
     function initialize() {
         WatchFace.initialize();
-        self.transformMove.translate(103.0, 137.0);
+        self.transformMove.translate(130.0, 130.0);
+        self.drawBuffer[0] = Graphics.createBufferedBitmap(self.initBufferOptions).get();
+        self.drawBuffer[1] = Graphics.createBufferedBitmap(self.initBufferOptions).get();
     }
 
     // Load your resources here
@@ -111,6 +115,7 @@ class WatchFaceView extends WatchUi.WatchFace {
         self.analogClock = View.findDrawableById("analogClock") as AnalogClockView;
         self.secondsClock = View.findDrawableById("secondsClock") as SecondsClockView;
         self.infoWeather = View.findDrawableById("infoWeather") as InfoWeather;
+        self.hand = WatchUi.loadResource(@Rez.Drawables.SecondsHand);
     }
 
     // Called when this View is brought to the foreground. Restore
@@ -199,6 +204,85 @@ class WatchFaceView extends WatchUi.WatchFace {
     // Update the view
     function onUpdate(dc as Dc) as Void {
         dc.clearClip();
+        if (self.sleepMode) {
+            self.engineTick(1000);
+            self.currentDrawBuffer = self.currentDrawBuffer ^ 1;
+        }
+
+        var buffer = self.drawBuffer[self.currentDrawBuffer];
+        dc.drawBitmap2(0, 0, buffer, self.emptyOpts);
+
+        self.secondsClock.drawSecondsHand(dc, buffer, buffer);
+    }
+
+    function min(a, b) {
+        return a < b ? a : b;
+    }
+
+    function max(a, b) {
+        return a > b ? a : b;
+    }
+
+    // Handle the partial update event
+    function onPartialUpdate( dc as Dc ) {
+        dc.clearClip();
+        self.lastTime = System.getTimer();
+        var angle = self.seconds * self.ONE_RAD;
+
+        //self.transform2.initialize();
+        //self.transform2.rotate(-angle);
+        //self.transform2.translate(-130.0, -130.0);
+        //dc.setClip(self.clearRange[0], self.clearRange[1], self.clearRange[2], self.clearRange[3]);
+
+        if (self.quota < 999) {
+            //self.seconds++;
+            self.quota += 2 - (System.getTimer() - self.lastTime);
+            //return;
+        }
+
+        var clip = self.transformMove.transformPoints(
+            self.transform.transformPoints(self.initClip)
+        );
+        //dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+        //var minX = clip[0][0] < clip[1][0] ? clip[0][0] : clip[2][0] < clip[1][0] ? clip[2][0] : clip[1][0];
+        var minX = self.min(clip[0][0], self.min(clip[1][0], self.min(clip[2][0], clip[3][0])));
+        var minY = self.min(clip[0][1], self.min(clip[1][1], self.min(clip[2][1], clip[3][1])));
+        var maxX = self.max(clip[0][0], self.max(clip[1][0], self.max(clip[2][0], clip[3][0])));
+        var maxY = self.max(clip[0][1], self.max(clip[1][1], self.max(clip[2][1], clip[3][1])));
+        dc.setClip(minX, minY, maxX - minX, maxY - minY);
+
+        //if (seconds < 16) {
+        //    dc.setClip(clip[0][0], clip[1][1], clip[2][0] - clip[0][0], clip[3][1] - clip[1][1]);
+        //} else if (seconds < 31) {
+        //    dc.setClip(clip[3][0], clip[0][1], clip[1][0] - clip[3][0], clip[2][1] - clip[0][1]);
+        //} else if (seconds < 46) {
+        //    dc.setClip(clip[2][0], clip[3][1], clip[0][0] - clip[2][0], clip[1][1] - clip[3][1]);
+        //} else {
+        //    dc.setClip(clip[1][0], clip[2][1], clip[3][0] - clip[1][0], clip[0][1] - clip[2][1]);
+        //}
+
+        self.transform.initialize();
+        self.transform.rotate(angle);
+        self.transform.translate(-24.0, -108.0);
+        dc.drawBitmap2(0, 0, self.drawBuffer[self.currentDrawBuffer], self.emptyOpts);
+        //dc.fillPolygon(clip);
+        //dc.drawRectangle(minX, minY, maxX - minX, maxY - minY);
+        dc.drawBitmap2(130, 130, self.buffer, self.drawBitmapOptions);
+
+        self.seconds++;
+        self.quota += 1 - (System.getTimer() - self.lastTime);
+    }
+
+    function engineTick(deltaTime) as Void {
+        self.clockTime = System.getClockTime();
+        // self.secondsDisk.setSeconds(clockTime.sec);
+        self.analogClock.setTime(self.clockTime.hour, self.clockTime.min, self.clockTime.sec);
+        var currentDrawBuffer = self.currentDrawBuffer;
+        self.currentDrawBuffer = self.currentDrawBuffer ^ 1;
+        self.drawBuffer[currentDrawBuffer] = Graphics.createBufferedBitmap(self.initBufferOptions).get();
+        var buffer = self.drawBuffer[currentDrawBuffer];
+
+        var dc = buffer.getDc();
         dc.setAntiAlias(true);
 
         try {
@@ -236,7 +320,7 @@ class WatchFaceView extends WatchUi.WatchFace {
             self.background.draw(dc);
             self.currentTime.setText(Lang.format("$1$:$2$", [self.clockTime.hour.format("%02d"), self.clockTime.min.format("%02d")]));
             self.weekDay.setText(WEEK_DAYS[date.day_of_week]);
-            self.weekDay.setColor(date.day_of_week == Date.DAY_SUNDAY ? 0xFF5500 : Graphics.COLOR_LT_GRAY);
+            self.weekDay.setColor(date.day_of_week == Date.DAY_SUNDAY ? 0xFF5500 : Graphics.COLOR_DK_GRAY);
             self.monthAndDate.setText(Lang.format("$1$ $2$", [MONTHS[date.month], date.day.format("%02d")]));
 
             self.secondsClock.setSeconds(clockTime.sec);
@@ -255,67 +339,19 @@ class WatchFaceView extends WatchUi.WatchFace {
             dc.drawBitmap(0, 0, self.infoBuffer);
             dc.drawBitmap(0, 0, self.frontBuffer);
 
-            self.secondsClock.drawSecondsHand(dc, self.backBuffer, self.frontBuffer);
+            self.buffer = Graphics.createBufferedBitmap(self.initBufferOptions1).get();
+            var bufferdc = self.buffer.getDc();
+            bufferdc.drawBitmap(0, 0, self.hand);
         } catch (ex) {
             var message = ex.getErrorMessage();
             System.println(message);
             dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
             dc.drawText(10, 120, Graphics.FONT_TINY, message, Graphics.TEXT_JUSTIFY_LEFT|Graphics.TEXT_JUSTIFY_VCENTER);
         }
-    }
 
-    // Handle the partial update event
-    function onPartialUpdate( dc as Dc ) {
-        dc.clearClip();
-        self.lastTime = System.getTimer();
-        var angle = self.seconds * self.ONE_RAD;
-
-        self.transform2.initialize();
-        self.transform2.rotate(-angle);
-        self.transform2.translate(-130.0, -130.0);
-        //dc.setClip(self.clearRange[0], self.clearRange[1], self.clearRange[2], self.clearRange[3]);
-
-        if (self.quota < 999) {
-            self.seconds++;
-            self.quota += 2 - (System.getTimer() - self.lastTime);
-            //return;
+        if (!self.sleepMode) {
+            WatchUi.requestUpdate();
         }
-
-        var clip = self.transformMove.transformPoints(
-            self.transform.transformPoints(self.initClip)
-        );
-        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.fillPolygon(clip);
-        var minX = clip[0][0] < clip[2][0] ? clip[0][0] : clip[2][0] < clip[1][0] ? clip[2][0] : clip[1][0];
-        var minY = clip[0][1] < clip[2][1] ? clip[0][1] : clip[2][1] < clip[1][1] ? clip[2][1] : clip[1][1];
-        var maxX = clip[0][0] > clip[2][0] ? clip[0][0] : clip[2][0] > clip[1][0] ? clip[2][0] : clip[1][0];
-        var maxY = clip[0][1] > clip[2][1] ? clip[0][1] : clip[2][1] > clip[1][1] ? clip[2][1] : clip[1][1];
-        //dc.setClip(minX, minY, maxX - minX, maxY - minY);
-
-        // if (seconds < 16) {
-        //     dc.setClip(clip[0][0], clip[1][1], clip[2][0] - clip[0][0], clip[3][1] - clip[1][1]);
-        // } else if (seconds < 31) {
-        //     dc.setClip(clip[3][0], clip[0][1], clip[1][0] - clip[3][0], clip[2][1] - clip[0][1]);
-        // } else if (seconds < 46) {
-        //     dc.setClip(clip[2][0], clip[3][1], clip[0][0] - clip[2][0], clip[1][1] - clip[3][1]);
-        // } else {
-        //     dc.setClip(clip[1][0], clip[2][1], clip[3][0] - clip[1][0], clip[0][1] - clip[2][1]);
-        // }
-
-        self.transform.initialize();
-        self.transform.rotate(angle);
-        self.transform.translate(-8.0, -46.0);
-
-        self.seconds++;
-        self.quota += 1 - (System.getTimer() - self.lastTime);
-    }
-
-    function engineTick(deltaTime) as Void {
-        self.clockTime = System.getClockTime();
-        // self.secondsDisk.setSeconds(clockTime.sec);
-        self.analogClock.setTime(self.clockTime.hour, self.clockTime.min, self.clockTime.sec);
-
-        WatchUi.requestUpdate();
     }
 
     // Called when this View is removed from the screen. Save the

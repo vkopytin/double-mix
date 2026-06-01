@@ -16,8 +16,8 @@ class SecondsClockView extends WatchUi.Drawable {
         :transform => self.transform
     };
     private var initBufferOptions = {
-        :width => 40,
-        :height => 53,
+        :width => 50,
+        :height => 150,
     };
     private var locX = 130;
     private var locY = 130;
@@ -28,6 +28,9 @@ class SecondsClockView extends WatchUi.Drawable {
         self.locY = params.get(:locY);
         self.hand = WatchUi.loadResource(params.get(:rezId));
         self.transformMove.translate(self.locX, self.locY);
+        self.buffer = Graphics.createBufferedBitmap(
+            self.initBufferOptions
+        ).get();
     }
 
     function draw(dc as Dc) {
@@ -62,17 +65,17 @@ class SecondsClockView extends WatchUi.Drawable {
 
         self.transform.initialize();
         self.transform.rotate(angle);
-        self.transform.translate(-24.0, -46.0);
+        self.transform.translate(-24.0, -108.0);
         self.clearSecondsHand(dc, backBuffer, true);
         dc.drawBitmap2(posX, posY, self.buffer, self.drawBitmapOptions);
     }
 
     //private var initClip = [[-5.0, 68.0],[-5.0, -1.0],[22.0, -1.0],[22.0,68.0]];
-    private var initClip = [[18.0, 56.0],[18.0, 0.0], [30.0, 0.0], [30.0, 56.0]];
+    private var initClip = [[18.0, 150.0],[18.0, 0.0], [30.0, 0.0], [30.0, 150.0]];
     function clearSecondsHand(dc as Dc, buffer as BufferedBitmap, reset) {
         dc.clearClip();
         var clip = self.transform.transformPoints(self.initClip);
-        clip = self.transformMove.transformPoints(clip);
+        clip = self.transformMove.transformPoints(clip) as Array<[Numeric, Numeric]>;
         //dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
         //dc.fillPolygon(clip);
         if (self.previousSeconds < 15) {

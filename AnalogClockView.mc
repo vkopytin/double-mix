@@ -41,14 +41,14 @@ class AnalogClockView extends WatchUi.Drawable {
         minuteHandTransform.translate(posX, posY);
         minuteHandTransform.scale(1.0, 1.0);
         minuteHandTransform.rotate(minuteAngle + secondAngle / 60.0);
-        minuteHandTransform.translate(-16.0, -112.0);
+        minuteHandTransform.translate(-17.0, -113.0);
 
         var hourAngle = self.hours / 12.0 * 2.0 * Math.PI;
         hourHandTransform = new Graphics.AffineTransform();
         hourHandTransform.translate(posX, posY);
         hourHandTransform.scale(1.0, 1.0);
         hourHandTransform.rotate(hourAngle + minuteAngle / 12.0);
-        hourHandTransform.translate(-20.0, -60.0);
+        hourHandTransform.translate(-20.0, -61.0);
 
         dc.drawBitmap2(0, 0, self.minuteHand, {
             :transform => minuteHandTransform,

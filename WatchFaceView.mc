@@ -88,6 +88,9 @@ class WatchFaceView extends WatchUi.WatchFace {
     private var dayNightBand = null as WatchUi.BitmapResource?;
     private var secondsClock = null as SecondsClockView?;
     private var infoWeather = null as InfoWeather?;
+    private var heartRate = null as Toybox.WatchUi.Text?;
+    private var energyLevel = null as Toybox.WatchUi.Text?;
+    private var barometer = null as Toybox.WatchUi.Text?;
 
     function initialize() {
         WatchFace.initialize();
@@ -108,14 +111,19 @@ class WatchFaceView extends WatchUi.WatchFace {
 
         self.dayNightBand = WatchUi.loadResource(Rez.Drawables.dayNightBand);
         self.background = View.findDrawableById("background");
-        self.currentTime = View.findDrawableById("currentTime");
+        self.currentTime = View.findDrawableById("currentTime") as Toybox.WatchUi.Text;
         self.weekDay = View.findDrawableById("weekDay");
         self.stepsCount = View.findDrawableById("stepsCount");
         self.monthAndDate = View.findDrawableById("monthAndDate");
         self.analogClock = View.findDrawableById("analogClock") as AnalogClockView;
         self.secondsClock = View.findDrawableById("secondsClock") as SecondsClockView;
         self.infoWeather = View.findDrawableById("infoWeather") as InfoWeather;
+        self.heartRate = View.findDrawableById("heartRate");
+        self.energyLevel = View.findDrawableById("energyLevel");
+        self.barometer = View.findDrawableById("barometer");
         self.hand = WatchUi.loadResource(@Rez.Drawables.SecondsHand);
+
+        //self.currentTime.setFont(Graphics.getVectorFont({:face => "BionicBold", :size => 50}));
     }
 
     // Called when this View is brought to the foreground. Restore
@@ -186,6 +194,9 @@ class WatchFaceView extends WatchUi.WatchFace {
         self.stepsCount.draw(infoBufferdc);
         self.monthAndDate.draw(infoBufferdc);
         self.currentTime.draw(infoBufferdc);
+        self.heartRate.draw(infoBufferdc);
+        self.energyLevel.draw(infoBufferdc);
+        self.barometer.draw(infoBufferdc);
         self.analogClock.draw(infoBufferdc);
         self.secondsClock.draw(infoBufferdc);
         //self.bg.draw(bufferdc);
@@ -302,15 +313,22 @@ class WatchFaceView extends WatchUi.WatchFace {
             if (sample != null && sample.data != null) {
                 // set (sample.data);
             }
+            if ((Toybox has :SensorHistory) && (Toybox.SensorHistory has :getPressureHistory)) {
+		        sample = Toybox.SensorHistory.getPressureHistory({});
+                if (sample != null) {
+                    var data = sample.next();
+                    self.barometer.setText((data.data / 100).format("%d"));
+                }
+		    }
             var activityInfo = Activity.getActivityInfo();
             if (activityInfo != null && activityInfo.currentHeartRate != null) {
-                // set (activityInfo.currentHeartRate);
+                self.heartRate.setText(activityInfo.currentHeartRate.format("%d"));
             }
 
             var bodyBatteryIterator = Toybox.SensorHistory.getBodyBatteryHistory({ :period => 1 });
             sample = bodyBatteryIterator.next();
             if (sample != null && sample.data != null) {
-                // set (sample.data);
+                self.energyLevel.setText(Lang.format("$1$%", [sample.data.format("%d")]));
             }
 
             self.clockTime = System.getClockTime();
@@ -320,7 +338,7 @@ class WatchFaceView extends WatchUi.WatchFace {
             self.background.draw(dc);
             self.currentTime.setText(Lang.format("$1$:$2$", [self.clockTime.hour.format("%02d"), self.clockTime.min.format("%02d")]));
             self.weekDay.setText(WEEK_DAYS[date.day_of_week]);
-            self.weekDay.setColor(date.day_of_week == Date.DAY_SUNDAY ? 0xFF5500 : Graphics.COLOR_DK_GRAY);
+            self.weekDay.setColor(date.day_of_week == Date.DAY_SUNDAY ? 0xFF5500 : Graphics.COLOR_BLACK);
             self.monthAndDate.setText(Lang.format("$1$ $2$", [MONTHS[date.month], date.day.format("%02d")]));
 
             self.secondsClock.setSeconds(clockTime.sec);

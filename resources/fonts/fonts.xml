@@ -1,3 +1,4 @@
 <fonts>
     <font id="WeatherFont" filename="weather-icons-24.fnt" antialias="true" />
+    <font id="system12" filename="system-12.fnt" antialias="true" />
 </fonts>

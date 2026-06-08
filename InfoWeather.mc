@@ -7,6 +7,7 @@ import Toybox.Application;
 
 class InfoWeather extends WatchUi.Drawable {
     private var color = Graphics.COLOR_BLACK;
+    private var font = Graphics.FONT_TINY;
 
     function initialize(params) {
         Drawable.initialize(params);
@@ -233,14 +234,13 @@ class InfoWeather extends WatchUi.Drawable {
         }
       }
 
-      // correcting a bug introduced by System 7 SDK
       temp = temp.format("%d");
 
-      dc.drawText(x, y + offset, Graphics.FONT_XTINY, temp,
-                  Graphics.TEXT_JUSTIFY_LEFT);  // + units
+      dc.drawText(x, y + offset, self.font, temp,
+                  Graphics.TEXT_JUSTIFY_LEFT);
       dc.setColor(fontColor, Graphics.COLOR_TRANSPARENT);
-      dc.drawText(x + dc.getTextWidthInPixels(temp, Graphics.FONT_XTINY),
-                  y + offset, Graphics.FONT_XTINY, units,
+      dc.drawText(x + dc.getTextWidthInPixels(temp, self.font),
+                  y + offset, self.font, units,
                   Graphics.TEXT_JUSTIFY_LEFT);
     }
   }

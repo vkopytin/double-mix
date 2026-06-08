@@ -7,6 +7,7 @@
 
     <drawable-list id="background">
         <bitmap id="bg" filename="background.png" y="0" scaleX="260" scaleY="260" />
+        <bitmap id="bgDark" filename="bg-panel.png" y="0" scaleX="260" scaleY="260" />
     </drawable-list>
 
 </drawables>

@@ -9,10 +9,13 @@
             <param name="minuteHandResId">@Drawables.MinuteHand</param>
         </drawable>
 
-        <label id="currentTime" visible="true" x="80" y="150" text="10:10" color="Graphics.COLOR_DK_GRAY" font="Graphics.FONT_NUMBER_MILD" justification="Graphics.TEXT_JUSTIFY_LEFT" />
-        <label id="weekDay" visible="true" x="170" y="110" text="MON" color="Graphics.COLOR_DK_GRAY" font="Graphics.FONT_TINY" justification="Graphics.TEXT_JUSTIFY_LEFT" />
-        <label id="monthAndDate" visible="true" x="40" y="110" text="JAN 01" color="Graphics.COLOR_DK_GRAY" font="Graphics.FONT_TINY" justification="Graphics.TEXT_JUSTIFY_LEFT" />
-        <label id="stepsCount" visible="true" x="100" y="70" text="12345" color="Graphics.COLOR_DK_GRAY" font="Graphics.FONT_SMALL" justification="Graphics.TEXT_JUSTIFY_LEFT" />
+        <label id="currentTime" visible="true" x="128" y="146" text="10:10" color="#000000" font="Graphics.FONT_LARGE" justification="Graphics.TEXT_JUSTIFY_CENTER" />
+        <label id="weekDay" visible="true" x="190" y="116" text="MON" color="#000000" font="Graphics.FONT_TINY" justification="Graphics.TEXT_JUSTIFY_LEFT" />
+        <label id="monthAndDate" visible="true" x="154" y="68" text="JAN 01" color="#000000" font="Graphics.FONT_TINY" justification="Graphics.TEXT_JUSTIFY_LEFT" />
+        <label id="stepsCount" visible="true" x="130" y="224" text="12345" color="#000000" font="Graphics.FONT_GLANCE" justification="Graphics.TEXT_JUSTIFY_CENTER" />
+        <label id="heartRate" visible="true" x="38" y="126" text="75" color="#000000" font="Graphics.FONT_TINY" justification="Graphics.TEXT_JUSTIFY_CENTER" />
+        <label id="energyLevel" visible="true" x="82" y="214" text="80%" color="#000000" font="Graphics.FONT_GLANCE" justification="Graphics.TEXT_JUSTIFY_CENTER" />
+        <label id="barometer" visible="true" x="184" y="214" text="1013" color="#000000" font="Graphics.FONT_GLANCE" justification="Graphics.TEXT_JUSTIFY_CENTER" />
 
         <drawable id="secondsClock" class="SecondsClockView">
             <param name="locX">130</param>
@@ -21,10 +24,10 @@
         </drawable>
 
         <drawable id="infoWeather" class="InfoWeather">
-            <param name="locX">100</param>
-            <param name="locY">24</param>
+            <param name="locX">80</param>
+            <param name="locY">40</param>
             <param name="width">40</param>
-            <param name="color">Graphics.COLOR_DK_GRAY</param>
+            <param name="color">Graphics.COLOR_BLACK</param>
         </drawable>
     </layout>
 

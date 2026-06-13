@@ -54,7 +54,6 @@ class WatchFaceView extends WatchUi.WatchFace {
     private const transform = new Graphics.AffineTransform();
     private const transform2 = new Graphics.AffineTransform();
     private const transformMove = new Graphics.AffineTransform();
-    private const transformDayNight = new Graphics.AffineTransform();
 
     private const drawBitmapOptions = {
         :transform => self.transform
@@ -70,12 +69,8 @@ class WatchFaceView extends WatchUi.WatchFace {
         :width => 260,
         :height => 260,
     };
-    private const drawDayNightOptions = {
-        :transform => self.transformDayNight
-    };
     //private var initClip = [[0.0, 145.0],[0.0, 0.0], [16.0, 0.0], [16.0, 145.0]];
     private const initClip = [[15.0, 155.0],[15.0, 0.0], [39.0, 0.0], [39.0, 155.0]];
-    private const clearRange = [79, 53, 103, 24];
     private const emptyOpts = {};
     private var lastTime = 0;
     private var clockTime = null as System.ClockTime?;
@@ -85,7 +80,6 @@ class WatchFaceView extends WatchUi.WatchFace {
     private var monthAndDate = null as Toybox.WatchUi.Text?;
     private var stepsCount = null as Toybox.WatchUi.Text?;
     private var background = null as Toybox.WatchUi.Drawable?;
-    private var dayNightBand = null as WatchUi.BitmapResource?;
     private var secondsClock = null as SecondsClockView?;
     private var infoWeather = null as InfoWeather?;
     private var heartRate = null as Toybox.WatchUi.Text?;
@@ -95,8 +89,6 @@ class WatchFaceView extends WatchUi.WatchFace {
     function initialize() {
         WatchFace.initialize();
         self.transformMove.translate(130.0, 130.0);
-        self.drawBuffer[0] = Graphics.createBufferedBitmap(self.initBufferOptions).get();
-        self.drawBuffer[1] = Graphics.createBufferedBitmap(self.initBufferOptions).get();
     }
 
     // Load your resources here
@@ -109,7 +101,6 @@ class WatchFaceView extends WatchUi.WatchFace {
         self.backLayout = Rez.Layouts.main(dc);
         setLayout(self.backLayout);
 
-        self.dayNightBand = WatchUi.loadResource(Rez.Drawables.dayNightBand);
         self.background = View.findDrawableById("background");
         self.currentTime = View.findDrawableById("currentTime") as Toybox.WatchUi.Text;
         self.weekDay = View.findDrawableById("weekDay");
@@ -124,6 +115,12 @@ class WatchFaceView extends WatchUi.WatchFace {
         self.hand = WatchUi.loadResource(@Rez.Drawables.SecondsHand);
 
         //self.currentTime.setFont(Graphics.getVectorFont({:face => "BionicBold", :size => 50}));
+        self.drawBuffer[0] = Graphics.createBufferedBitmap(self.initBufferOptions).get();
+        self.drawBuffer[1] = Graphics.createBufferedBitmap(self.initBufferOptions).get();
+        self.buffer = Graphics.createBufferedBitmap(self.initBufferOptions1).get();
+        self.backBuffer = Graphics.createBufferedBitmap(self.initBufferOptions).get();
+        self.frontBuffer = Graphics.createBufferedBitmap(self.initBufferOptions).get();
+        self.infoBuffer = Graphics.createBufferedBitmap(self.initBufferOptions).get();
     }
 
     // Called when this View is brought to the foreground. Restore
@@ -143,15 +140,8 @@ class WatchFaceView extends WatchUi.WatchFace {
             return;
         }
 
-        self.backBuffer = Graphics.createBufferedBitmap(
-            self.initBufferOptions
-        ).get();
-
         backBufferdc = self.backBuffer.getDc();
 
-        backBufferdc.setAntiAlias(true);
-
-        backBufferdc.drawBitmap2(0, 98, self.dayNightBand, self.drawDayNightOptions);
         self.background.draw(backBufferdc);
 
         backBufferdc = null;
@@ -164,11 +154,9 @@ class WatchFaceView extends WatchUi.WatchFace {
             return;
         }
 
-        self.frontBuffer = Graphics.createBufferedBitmap(
-            self.initBufferOptions
-        ).get();
-
         frontBufferdc = self.frontBuffer.getDc();
+        frontBufferdc.setColor(Graphics.COLOR_TRANSPARENT, Graphics.COLOR_TRANSPARENT);
+        frontBufferdc.clear();
 
         frontBufferdc.setAntiAlias(true);
 
@@ -179,14 +167,11 @@ class WatchFaceView extends WatchUi.WatchFace {
     }
 
     function updateInfoBuffer(dc as Dc) as Void {
-        var infoBufferdc = null as Graphics.Dc?;
-
-        self.infoBuffer = Graphics.createBufferedBitmap(
-            self.initBufferOptions
-        ).get();
+        var infoBufferdc = null as Graphics.Dc?;        
 
         infoBufferdc = self.infoBuffer.getDc();
-
+        infoBufferdc.setColor(Graphics.COLOR_TRANSPARENT, Graphics.COLOR_TRANSPARENT);
+        infoBufferdc.clear();
         infoBufferdc.setAntiAlias(true);
 
         self.weekDay.draw(infoBufferdc);
@@ -290,7 +275,6 @@ class WatchFaceView extends WatchUi.WatchFace {
         self.analogClock.setTime(self.clockTime.hour, self.clockTime.min, self.clockTime.sec);
         var currentDrawBuffer = self.currentDrawBuffer;
         self.currentDrawBuffer = self.currentDrawBuffer ^ 1;
-        self.drawBuffer[currentDrawBuffer] = Graphics.createBufferedBitmap(self.initBufferOptions).get();
         var buffer = self.drawBuffer[currentDrawBuffer];
 
         var dc = buffer.getDc();
@@ -343,10 +327,6 @@ class WatchFaceView extends WatchUi.WatchFace {
 
             self.secondsClock.setSeconds(clockTime.sec);
 
-            var dayNightPosition = (self.clockTime.hour + self.clockTime.min / 60.0) / 24.0 * 240.0 - 200.0;
-            self.transformDayNight.initialize();
-            self.transformDayNight.translate(dayNightPosition, 70.0);
-
             var refresh = self.minutes != self.clockTime.min;
             self.updateBackBuffer(dc, refresh);
             self.updateFrontBuffer(dc, refresh);
@@ -357,7 +337,6 @@ class WatchFaceView extends WatchUi.WatchFace {
             dc.drawBitmap(0, 0, self.infoBuffer);
             dc.drawBitmap(0, 0, self.frontBuffer);
 
-            self.buffer = Graphics.createBufferedBitmap(self.initBufferOptions1).get();
             var bufferdc = self.buffer.getDc();
             bufferdc.drawBitmap(0, 0, self.hand);
         } catch (ex) {

@@ -127,6 +127,7 @@ class WatchFaceView extends WatchUi.WatchFace {
     // the state of this View and prepare it to be shown. This includes
     // loading resources into memory.
     function onShow() as Void {
+        self.secondsClock.setSeconds(100);
         self.timer.nextTick();
         if (self.sleepMode == false) {
             self.timer.start();
@@ -360,6 +361,7 @@ class WatchFaceView extends WatchUi.WatchFace {
 
     // The user has just looked at their watch. Timers and animations may be started here.
     function onExitSleep() as Void {
+        self.secondsClock.setSeconds(100);
         self.sleepMode = false;
         self.timer.nextTick();
         self.timer.start();
